@@ -1,0 +1,94 @@
+/* General Reset */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url('background.svg') no-repeat center center/cover;
+    overflow: hidden;
+}
+
+/* Container Styling */
+.container {
+    text-align: center;
+    padding: 20px 40px;
+}
+
+/* Text Styling */
+.match-bg{
+  background-color: #53B8C0;
+    color: white;
+    display: inline; /* Ensures the background is limited to the text */
+    padding: 15px;
+    border-radius: 5px;
+}
+
+h1, p {
+    color: white;
+    margin: 10px 0;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+p {
+    font-size: 1.2rem;
+    line-height: 1.5;
+}
+
+/* Input Box Styling */
+#chat-box {
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    background-color: #fafafa;
+}
+
+#messages {
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    margin-bottom: 10px;
+}
+
+.user-message {
+    text-align: right;
+    color: blue;
+}
+
+.bot-message {
+    text-align: left;
+    color: green;
+}
+
+#user-input {
+    width: calc(100% - 60px);
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Button Styling - need to edit later so button is inline with text input */
+#send-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: white;
+    color: #53B8C0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#send-button:hover {
+    background-color: #53B8C0;
+    color: white;
+    border: 2px solid white;
+}
