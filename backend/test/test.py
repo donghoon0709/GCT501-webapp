@@ -69,6 +69,36 @@ async def generate_image(request: ImageRequest):
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/generate-sticker")
+async def generate_sticker(request: ImageRequest):
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are going to make prompt for dall-e-3 model. It should start from \"Make more the 5 piece of sticker representing\". After this, you should list the core memory or the core object from the user input, seperating them by comma. The output should be one sentence."},
+                {"role": "user", "content": request.message}
+            ]
+        )
+
+        sticker_prompt = completion.choices[0].message.content + " The background color shouldn't be white. The stickers should have white boudaries. The stickers are going to be printed out so those stickers should not be overlaped each other."
+        print (sticker_prompt)
+
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=sticker_prompt,
+            size="1792x1024",
+            quality="standard",
+            n=1
+        )
+
+        image_url = response.data[0].url
+        print(f"{image_url}")
+        return {"message": image_url}
+
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)
