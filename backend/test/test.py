@@ -26,6 +26,10 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
 
+class ImageRequest(BaseModel):
+    message: str
+
+
 # Define a root endpoint
 @app.get("/")
 async def read_root():
@@ -44,7 +48,27 @@ async def chat(request: ChatRequest):
         )
         return {"message": completion.choices[0].message.content}
     except Exception as e:
+        print(f"Error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
+@app.post("/generate-image")
+async def generate_image(request: ImageRequest):
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=request.message,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+
+        image_url = response.data[0].url
+        print(f"{image_url}")
+        return {"message": image_url}
+
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)
