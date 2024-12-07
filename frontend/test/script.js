@@ -71,19 +71,8 @@ function makeYesOrNoButtons () {
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'button-container';
 
-    const yesButton = document.createElement('button');
-    yesButton.className = 'response-button';
-    yesButton.textContent = 'Yes';
-    yesButton.addEventListener('click', () => {
-        handleYes();
-    });
-
-    const noButton = document.createElement('button');
-    noButton.className = 'response-button';
-    noButton.textContent = 'No';
-    noButton.addEventListener('click', () => {
-        handleNo();
-    });
+    const yesButton = createButton("Yes", handleYes);
+    const noButton = createButton("No", handleNo)
 
     buttonContainer.appendChild(yesButton);
     buttonContainer.appendChild(noButton);
@@ -122,19 +111,8 @@ function makeChangeOrNewButtons () {
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'button-container';
 
-    const changeButton = document.createElement('button');
-    changeButton.className = 'response-button';
-    changeButton.textContent = 'Change keywords';
-    changeButton.addEventListener('click', () => {
-        handleChange();
-    });
-
-    const newButton = document.createElement('button');
-    newButton.className = 'response-button';
-    newButton.textContent = 'Make new input';
-    newButton.addEventListener('click', () => {
-        handleNew();
-    });
+    const changeButton = createButton("Change keywords", handleChange);
+    const newButton = createButton("Make new input", handleNewInput);
 
     buttonContainer.appendChild(changeButton);
     buttonContainer.appendChild(newButton);
@@ -146,13 +124,14 @@ function makeChangeOrNewButtons () {
 function handleChange () {
     displayMessage("Change keywords", 'user');
     displayMessage("Select a keyword you want to delete. Click \"Add new\" button to add new keywords", 'bot');
+
     const buttonContainer = document.querySelector('.button-container');
     buttonContainer.remove();
 
     makeKeywordButtons(keywords);
 }
 
-function handleNew () {
+function handleNewInput () {
     displayMessage("Make new input", 'user');
     const buttonContainer = document.querySelector('.button-container');
     buttonContainer.remove();
@@ -168,61 +147,13 @@ function makeKeywordButtons(keywords) {
     keywordContainer.className = 'keyword-container';
 
     keywords.forEach((keyword, index) => {
-        const keywordButton = document.createElement('button');
-        keywordButton.className = 'response-button';
-        keywordButton.textContent = keyword;
-
-        // 클릭 이벤트 추가
-        keywordButton.addEventListener('click', () => {
-            const deleteKeyword = confirm(`Do you want to delete the keyword "${keyword}"?`);
-            if (deleteKeyword) {
-                keywords.splice(index, 1);
-                keywordButton.remove();
-            }
-        });
+        const keywordButton = createButton(keyword, () => handleDeleteKeyword(index, keywordButton));
 
         keywordContainer.appendChild(keywordButton);
     });
 
-    const addNewButton = document.createElement('button');
-    addNewButton.className = 'response-button';
-    addNewButton.textContent = 'Add new';
-    addNewButton.addEventListener('click', () => {
-        const newKeyword = prompt("Input new keywords to add");
-        if (newKeyword && !keywords.includes(newKeyword)) {
-            keywords.push(newKeyword);
-
-            const newKeywordButton = document.createElement('button');
-            newKeywordButton.className = 'response-button';
-            newKeywordButton.textContent = newKeyword;
-            newKeywordButton.addEventListener('click', () => {
-                const deleteKeyword = confirm(`Do you want to delete the keyword "${newKeyword}"?`);
-                if (deleteKeyword) {
-                    keywords.splice(keywords.indexOf(newKeyword), 1);
-                    newKeywordButton.remove();
-                }
-            });
-            keywordContainer.appendChild(newKeywordButton);
-        }
-    });
-
-    // Finish button to confirm keyword selection
-    const finishButton = document.createElement('button');
-    finishButton.className = 'response-button';
-    finishButton.textContent = 'Done';
-    finishButton.addEventListener('click', () => {
-        const confirmKeyword = confirm("Do you want to confirm those keywords?");
-        if (confirmKeyword) {
-            displayMessage(`Final keywords: ${keywords.join(', ')}`, 'bot');
-            displayMessage("Then, let's take some photos!", 'bot');
-
-            keywordContainer.remove();
-            adjustContainer.remove();
-
-            sendButton.remove();
-            userInput.remove();
-        }
-    });
+    const addNewButton = createButton('Add new', () => handleAddNewKeyword(keywordContainer));
+    const finishButton = createButton('Done', () => handleConfirmChange(keywordContainer, adjustContainer));
 
     adjustContainer.appendChild(addNewButton);
     adjustContainer.appendChild(finishButton);
@@ -233,6 +164,49 @@ function makeKeywordButtons(keywords) {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
+function handleAddNewKeyword(keywordContainer) {
+    const newKeyword = prompt("Input new keywords to add");
+    if (newKeyword && !keywords.includes(newKeyword)) {
+        keywords.push(newKeyword);
+
+        const newKeywordButton = createButton(newKeyword,
+            () => handleDeleteKeyword(keywords.indexOf(newKeyword), newKeywordButton));
+
+        // newKeywordButton.className = 'response-button';
+        // newKeywordButton.textContent = newKeyword;
+        // newKeywordButton.addEventListener('click', () => {
+        //     const deleteKeyword = confirm(`Do you want to delete the keyword "${newKeyword}"?`);
+        //     if (deleteKeyword) {
+        //         keywords.splice(keywords.indexOf(newKeyword), 1);
+        //         newKeywordButton.remove();
+        //     }
+        // });
+        keywordContainer.appendChild(newKeywordButton);
+    }
+}
+
+function handleDeleteKeyword(index, buttonElement) {
+    const deleteKeyword = confirm(`Do you want to delete the keyword "${keywords[index]}"?`);
+    if (deleteKeyword) {
+        keywords.splice(index, 1);
+        buttonElement.remove();
+    }
+}
+
+function handleConfirmChange(keywordContainer, adjustContainer) {
+    const confirmKeyword = confirm("Do you want to confirm those keywords?");
+    if (confirmKeyword) {
+        displayMessage(`Final keywords: ${keywords.join(', ')}`, 'bot');
+        displayMessage("Then, let's take some photos!", 'bot');
+
+        keywordContainer.remove();
+        adjustContainer.remove();
+
+        sendButton.remove();
+        userInput.remove();
+    }
+}
+
 // function to display message
 function displayMessage(text, className) {
     const messagesDiv = document.getElementById('messages');
@@ -241,6 +215,14 @@ function displayMessage(text, className) {
     messageDiv.textContent = text;
     messagesDiv.appendChild(messageDiv);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function createButton(text, onClick, className = 'response-button') {
+    const button = document.createElement('button');
+    button.className = className;
+    button.textContent = text;
+    button.addEventListener('click', onClick);
+    return button;
 }
 
 // function to display image
