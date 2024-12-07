@@ -52,6 +52,12 @@ p {
 #messages {
     display: flex;
     flex-direction: column;
+    max-height: 400px; 
+    overflow-y: auto;  
+    padding: 10px;     
+    background-color: #ffffff; 
+    border: 1px solid #ddd;    
+    border-radius: 4px;       
 }
 
 .message {
@@ -93,13 +99,37 @@ p {
     font-size: 1rem;
     background-color: white;
     color: #53B8C0;
-    border: none;
+    border: 2px solid white;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #send-button:hover {
+    background-color: #53B8C0;
+    color: white;
+    border: 2px solid white;
+}
+
+#user-input:disabled, #send-button:disabled {
+    background-color: #f0f0f0;
+    color: #aaa;
+    cursor: not-allowed;
+    border: 1px solid #ddd;
+}
+
+.response-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: white;
+    color: #53B8C0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.response-button:hover {
     background-color: #53B8C0;
     color: white;
     border: 2px solid white;

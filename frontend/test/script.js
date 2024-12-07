@@ -1,5 +1,6 @@
 const sendButton = document.getElementById('send-button');
 const userInput = document.getElementById('user-input');
+const messagesDiv = document.getElementById('messages');
 
 const captureButton = document.getElementById('capture-button');
 
@@ -43,16 +44,65 @@ async function sendMessage () {
         const loadingMessage = document.querySelectorAll('.loading');
         loadingMessage.forEach((msg) => msg.remove());
 
-        displayMessage(data.message, 'bot-message');
-        displayMessage(data.keywords);
-        
+        displayMessage(data.message, 'bot');
+        if (data.keywords.length > 0) {
+            displayMessage("Keywords: " + data.keywords, 'bot');
+            displayMessage("This is summary of your day. Is it OK?", 'bot');
+            
+            makeButtons();
+        }
+
     } catch (error) {
-        console.error('Error:', error);
-        displayMessage('Error: Could not reach the server.', 'bot-message');
+        console.error(error);
+        displayMessage(error, 'bot-message');
     }
 
     // Clear input
     userInput.value = '';
+}
+
+function makeButtons () {
+    userInput.disabled = true;
+    sendButton.disabled = true;
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
+    const yesButton = document.createElement('button');
+    yesButton.className = 'response-button';
+    yesButton.textContent = 'Yes';
+    yesButton.addEventListener('click', () => {
+        handleUserResponse(true); 
+    });
+
+    const noButton = document.createElement('button');
+    noButton.className = 'response-button';
+    noButton.textContent = 'No';
+    noButton.addEventListener('click', () => {
+        handleUserResponse(false);
+    });
+
+    buttonContainer.appendChild(yesButton);
+    buttonContainer.appendChild(noButton);
+    messagesDiv.appendChild(buttonContainer);
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function handleUserResponse(isOkay) {
+    userInput.disabled = false;
+    sendButton.disabled = false;
+    
+    const messagesDiv = document.getElementById('messages');
+
+    displayMessage(isOkay ? 'Yes' : 'No', 'user');
+
+    const buttonContainer = document.querySelector('.button-container');
+    if (buttonContainer) {
+        buttonContainer.remove();
+    }
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 // function to display message
