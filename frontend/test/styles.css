@@ -58,14 +58,26 @@ p {
     margin-bottom: 10px;
 }
 
-.user-message {
+.message.user {
     text-align: right;
     color: blue;
 }
 
-.bot-message {
+.message.bot {
     text-align: left;
     color: green;
+}
+
+.message.loading {
+    animation: fadeInOut 2s infinite;
+}
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
 }
 
 #user-input {
@@ -91,4 +103,20 @@ p {
     background-color: #53B8C0;
     color: white;
     border: 2px solid white;
+}
+
+#webcam {
+    width: 100%;
+    max-width: 500px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+img {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 500px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
 }

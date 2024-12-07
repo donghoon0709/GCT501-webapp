@@ -9,13 +9,21 @@
 <body>
     <div class="container">
         <h1>
-          <span class="match-bg">Chat with GPT</span>
+            <span class="match-bg">Keep Your Memory</span>
         </h1>
-         <div id="chat-box">
+        <h2>Tell me about your day</h2>
+        <div id="chat-box">
             <div id="messages"></div>
         </div>
-        <input type="text" id="user-input" placeholder="Type your message here..." />
+        <input type="text" id="user-input" placeholder="How was your day?" />
         <button id="send-button">Send</button>
+        <div id="webcam-session" style="display: none;">
+            <h2>Lets take a photo!</h2>
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="snapshot" style="display: none;"></canvas>
+            <button id="capture-button">Capture Photo</button>
+            <img id="captured-photo" alt="Captured Photo" style="display: none;" />
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
