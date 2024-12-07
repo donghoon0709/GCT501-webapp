@@ -4,6 +4,8 @@ const messagesDiv = document.getElementById('messages');
 
 const captureButton = document.getElementById('capture-button');
 
+let keywords = null;
+
 // Send the daily report to the ChatGPT and get summary from it
 sendButton.addEventListener('click', async () => {
     sendMessage();
@@ -46,10 +48,14 @@ async function sendMessage () {
 
         displayMessage(data.message, 'bot');
         if (data.keywords.length > 0) {
-            displayMessage("Keywords: " + data.keywords, 'bot');
+            keywords = data.keywords;
+            displayMessage("Keywords: " + keywords, 'bot');
             displayMessage("This is summary of your day. Is it OK?", 'bot');
-            
-            makeButtons();
+
+            userInput.disabled = true;
+            sendButton.disabled = true;
+
+            makeYesOrNoButtons();
         }
 
     } catch (error) {
@@ -61,10 +67,7 @@ async function sendMessage () {
     userInput.value = '';
 }
 
-function makeButtons () {
-    userInput.disabled = true;
-    sendButton.disabled = true;
-
+function makeYesOrNoButtons () {
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'button-container';
 
@@ -72,14 +75,14 @@ function makeButtons () {
     yesButton.className = 'response-button';
     yesButton.textContent = 'Yes';
     yesButton.addEventListener('click', () => {
-        handleUserResponse(true); 
+        handleYes();
     });
 
     const noButton = document.createElement('button');
     noButton.className = 'response-button';
     noButton.textContent = 'No';
     noButton.addEventListener('click', () => {
-        handleUserResponse(false);
+        handleNo();
     });
 
     buttonContainer.appendChild(yesButton);
@@ -89,20 +92,116 @@ function makeButtons () {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-function handleUserResponse(isOkay) {
-    userInput.disabled = false;
-    sendButton.disabled = false;
-    
-    const messagesDiv = document.getElementById('messages');
-
-    displayMessage(isOkay ? 'Yes' : 'No', 'user');
+function handleYes() {
+    displayMessage("Yes", 'user');
 
     const buttonContainer = document.querySelector('.button-container');
-    if (buttonContainer) {
-        buttonContainer.remove();
-    }
+    buttonContainer.remove();
+
+    sendButton.remove();
+    userInput.remove();
+    displayMessage("Then, let's take some photos!", 'bot');
 
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function handleNo() {
+    displayMessage("No", 'user');
+
+    sendButton.disabled = true;
+    userInput.disabled = true;
+
+    const buttonContainer = document.querySelector('.button-container');
+    buttonContainer.remove();
+
+    displayMessage("Do you want to change keywords, or input another messages?", 'bot');
+    makeChangeOrNewButtons();
+}
+
+function makeChangeOrNewButtons () {
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
+    const changeButton = document.createElement('button');
+    changeButton.className = 'response-button';
+    changeButton.textContent = 'Change keywords';
+    changeButton.addEventListener('click', () => {
+        handleChange();
+    });
+
+    const newButton = document.createElement('button');
+    newButton.className = 'response-button';
+    newButton.textContent = 'Make new input';
+    newButton.addEventListener('click', () => {
+        handleNew();
+    });
+
+    buttonContainer.appendChild(changeButton);
+    buttonContainer.appendChild(newButton);
+    messagesDiv.appendChild(buttonContainer);
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function handleChange () {
+    displayMessage("Change keywords", 'user');
+    displayMessage("Select a keyword you want to change.", 'bot');
+    const buttonContainer = document.querySelector('.button-container');
+    buttonContainer.remove();
+
+    makeKeywordButtons(keywords);
+}
+
+function handleNew () {
+    displayMessage("Make new input", 'user');
+    const buttonContainer = document.querySelector('.button-container');
+    buttonContainer.remove();
+
+    sendButton.disabled = false;
+    userInput.disabled = false;
+}
+
+function makeKeywordButtons(keywords) {
+    const keywordContainer = document.createElement('div');
+    keywordContainer.className = 'keyword-container';
+
+    keywords.forEach((keyword, index) => {
+        const keywordButton = document.createElement('button');
+        keywordButton.className = 'response-button';
+        keywordButton.textContent = keyword;
+
+        // 클릭 이벤트 추가
+        keywordButton.addEventListener('click', () => {
+            const newKeyword = prompt(`Change "${keyword}" to:`, keyword);
+            if (newKeyword) {
+                keywords[index] = newKeyword; // 키워드 배열 업데이트
+                keywordButton.textContent = newKeyword; // 버튼 텍스트 업데이트
+            }
+        });
+
+        keywordContainer.appendChild(keywordButton);
+    });
+
+    // Finish button to confirm keyword selection
+    const finishButton = document.createElement('button');
+    finishButton.className = 'response-button';
+    finishButton.textContent = 'Done';
+    finishButton.addEventListener('click', () => {
+        finalizeKeywords(keywords);
+        keywordContainer.remove();
+        userInput.disabled = false;
+        sendButton.disabled = false;
+    });
+
+    keywordContainer.appendChild(finishButton);
+    messagesDiv.appendChild(keywordContainer);
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function finalizeKeywords(updatedKeywords) {
+    displayMessage(`Final keywords: ${updatedKeywords.join(', ')}`, 'bot');
+    console.log('Updated keywords:', updatedKeywords);
 }
 
 // function to display message
