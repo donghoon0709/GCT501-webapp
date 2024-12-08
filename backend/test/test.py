@@ -115,7 +115,7 @@ async def generate_sticker(request: KeywordRequest):
         sticker_prompt = """
             Make more than 5 stickers.
             The theme of stickers is """ + ", ".join(request.keywords) + """
-            . The background color must be blank white to be printed out on the paper.
+            The background color must be blank white to be printed out on the paper.
             The stickers should have dotted line boudaries.
             The stickers are going to be printed out so those stickers should not be overlaped each other."
             """
