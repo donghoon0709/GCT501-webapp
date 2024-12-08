@@ -246,13 +246,34 @@ async function photoPhase() {
         console.error(error);
     } finally {
         mediaStream.getTracks().forEach(track => track.stop());
-        uploadPhoto(photos);
+        await uploadPhoto(photos);
+        generateStickers();
     }
+}
+
+async function generateStickers() {
+    try {
+        const response = await fetch (`http://localhost:${PORT}/api/generate-stickers`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ keywords })
+        });
+
+        if (!response.ok) throw new Error("Failed to generate stickers");
+
+        const result = await response.json();
+        console.log(result.message);
+    } catch (error) {
+        console.error(error);
+    }
+
 }
 
 async function uploadPhoto(photos) {
     try {
-        const response = await fetch (`http://localhost:${PORT}/upload-photos`, {
+        const response = await fetch (`http://localhost:${PORT}/api/upload-photos`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

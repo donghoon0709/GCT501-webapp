@@ -35,8 +35,8 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
 
-class ImageRequest(BaseModel):
-    message: str
+class KeywordRequest(BaseModel):
+    keywords: list[str]
 
 class PhotoUploadRequest(BaseModel):
     photos: list[str]
@@ -45,41 +45,6 @@ class PhotoUploadRequest(BaseModel):
 @app.get("/")
 async def read_root():
     return {"message": "Hello, World!"}
-
-# Define a chat endpoint
-@app.post("/chat")
-async def chat(request: ChatRequest):
-    try:
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": request.message}
-            ]
-        )
-        return {"message": completion.choices[0].message.content}
-    except Exception as e:
-        print(f"Error occurred: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-    
-@app.post("/generate-image")
-async def generate_image(request: ImageRequest):
-    try:
-        response = client.images.generate(
-            model="dall-e-3",
-            prompt=request.message,
-            size="1024x1024",
-            quality="standard",
-            n=1
-        )
-
-        image_url = response.data[0].url
-        print(f"{image_url}")
-        return {"message": image_url}
-
-    except Exception as e:
-        print(f"Error occurred: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 # Make a summary and keywords for user input.
 @app.post("/api/summarize-day")
@@ -127,7 +92,7 @@ async def summarize_day(request: ChatRequest):
         print(f"Error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.post("/upload-photos")
+@app.post("/api/upload-photos")
 async def get_photos(request: PhotoUploadRequest):
     try:
         save_path = "user_photos"
@@ -144,18 +109,16 @@ async def get_photos(request: PhotoUploadRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
     
-@app.post("/generate-sticker")
-async def generate_sticker(request: ImageRequest):
+@app.post("/api/generate-stickers")
+async def generate_sticker(request: KeywordRequest):
     try:
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are going to make prompt for dall-e-3 model. It should start from \"Make more the 5 piece of sticker representing\". After this, you should list the core memory or the core object from the user input, seperating them by comma. The output should be one sentence."},
-                {"role": "user", "content": request.message}
-            ]
-        )
-
-        sticker_prompt = completion.choices[0].message.content + " The background color must be blank white to be printed out on the paper. The stickers should have dotted line boudaries. The stickers are going to be printed out so those stickers should not be overlaped each other."
+        sticker_prompt = """
+            Make more than 5 stickers.
+            The theme of stickers is """ + ", ".join(request.keywords) + """
+            . The background color must be blank white to be printed out on the paper.
+            The stickers should have dotted line boudaries.
+            The stickers are going to be printed out so those stickers should not be overlaped each other."
+            """
         print (sticker_prompt)
 
         response = client.images.generate(
