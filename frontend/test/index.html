@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="chat-container" style="display: block;">
         <h1>
             <span class="match-bg">Keep Your Memory</span>
         </h1>
@@ -17,13 +17,13 @@
         </div>
         <input type="text" id="user-input" placeholder="How was your day?" />
         <button id="send-button">Send</button>
-        <div id="webcam-session" style="display: none;">
-            <h2>Lets take a photo!</h2>
-            <!-- <video id="webcam" autoplay playsinline></video>
-            <canvas id="snapshot" style="display: none;"></canvas>
-            <button id="capture-button">Capture Photo</button>
-            <img id="captured-photo" alt="Captured Photo" style="display: none;" /> -->
-        </div>
+    </div>
+    <div class="container" id="camera-container" style="display: none;">
+        <h1>
+            <span class="match-bg">Let's Take A Photo</span>
+        </h1>
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="snapshot"></canvas>
     </div>
     <script src="script.js"></script>
 </body>

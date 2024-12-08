@@ -10,6 +10,9 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from PIL import Image
 import subprocess
+import os
+
+import base64
 
 # Load environment variables
 load_dotenv()
@@ -34,6 +37,9 @@ class ChatRequest(BaseModel):
 
 class ImageRequest(BaseModel):
     message: str
+
+class PhotoUploadRequest(BaseModel):
+    photos: list[str]
 
 # Define a root endpoint
 @app.get("/")
@@ -120,6 +126,23 @@ async def summarize_day(request: ChatRequest):
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/upload-photos")
+async def get_photos(request: PhotoUploadRequest):
+    try:
+        save_path = "user_photos"
+        os.makedirs(save_path, exist_ok=True)
+
+        for idx, photo_base64 in enumerate(request.photos):
+            photo_data = base64.b64decode(photo_base64)
+
+            file_path = os.path.join(save_path, f"photo_{idx}.png")
+            with open (file_path, "wb") as f:
+                f.write(photo_data)
+
+        return {"message": f"File uploaded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
     
 @app.post("/generate-sticker")
 async def generate_sticker(request: ImageRequest):

@@ -4,6 +4,8 @@ const messagesDiv = document.getElementById('messages');
 
 const captureButton = document.getElementById('capture-button');
 
+const PORT = 8000
+
 let keywords = null;
 
 // Send the daily report to the ChatGPT and get summary from it
@@ -13,7 +15,6 @@ sendButton.addEventListener('click', async () => {
 
 userInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
-        // if (userInput.value.trim())
         sendMessage();
     }
 });
@@ -22,13 +23,18 @@ async function sendMessage () {
     const message = userInput.value.trim();
     if (!message) return;
 
+    userInput.value = ''
+
+    sendButton.disabled = true;
+    userInput.disabled = true;
+
     // Display user message
     displayMessage(message, 'user');
     displayMessage("Loading...", 'loading');
 
     // Send message to server
     try {
-        const response = await fetch('http://localhost:8000/api/summarize-day', {
+        const response = await fetch(`http://localhost:${PORT}/api/summarize-day`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -52,19 +58,17 @@ async function sendMessage () {
             displayMessage("Keywords: " + keywords, 'bot');
             displayMessage("This is summary of your day. Is it OK?", 'bot');
 
-            userInput.disabled = true;
-            sendButton.disabled = true;
-
             makeYesOrNoButtons();
+        }
+        else {
+            sendButton.disabled = false;
+            userInput.disabled = false;
         }
 
     } catch (error) {
         console.error(error);
         displayMessage(error, 'bot-message');
     }
-
-    // Clear input
-    userInput.value = '';
 }
 
 function makeYesOrNoButtons () {
@@ -92,13 +96,14 @@ function handleYes() {
     displayMessage("Then, let's take some photos!", 'bot');
 
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    const takephotoButton = createButton("Take photo", photoPhase);
+    const containerElement = document.querySelector('.container');
+    containerElement.appendChild(takephotoButton);
 }
 
 function handleNo() {
     displayMessage("No", 'user');
-
-    sendButton.disabled = true;
-    userInput.disabled = true;
 
     const buttonContainer = document.querySelector('.button-container');
     buttonContainer.remove();
@@ -171,16 +176,6 @@ function handleAddNewKeyword(keywordContainer) {
 
         const newKeywordButton = createButton(newKeyword,
             () => handleDeleteKeyword(keywords.indexOf(newKeyword), newKeywordButton));
-
-        // newKeywordButton.className = 'response-button';
-        // newKeywordButton.textContent = newKeyword;
-        // newKeywordButton.addEventListener('click', () => {
-        //     const deleteKeyword = confirm(`Do you want to delete the keyword "${newKeyword}"?`);
-        //     if (deleteKeyword) {
-        //         keywords.splice(keywords.indexOf(newKeyword), 1);
-        //         newKeywordButton.remove();
-        //     }
-        // });
         keywordContainer.appendChild(newKeywordButton);
     }
 }
@@ -199,12 +194,115 @@ function handleConfirmChange(keywordContainer, adjustContainer) {
         displayMessage(`Final keywords: ${keywords.join(', ')}`, 'bot');
         displayMessage("Then, let's take some photos!", 'bot');
 
+        const takephotoButton = createButton("Take photo", photoPhase);
+        const containerElement = document.querySelector('.container');
+        containerElement.appendChild(takephotoButton);
+
         keywordContainer.remove();
         adjustContainer.remove();
 
         sendButton.remove();
         userInput.remove();
     }
+}
+
+async function photoPhase() {
+    const chatContainer = document.getElementById('chat-container');
+    chatContainer.style.display = 'none';
+
+    const cameraContainer = document.getElementById('camera-container');
+    cameraContainer.style.display = 'block';
+
+    const webcam = document.getElementById('webcam');
+    const snapshotCanvas = document.getElementById('snapshot');
+    let mediaStream = null;
+    let photos = [];
+
+    const countdownElement = document.createElement('div');
+    countdownElement.className = 'countdown-timer';
+    cameraContainer.appendChild(countdownElement);
+
+    try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        webcam.srcObject = mediaStream;
+
+        const totalPhotos = 4;
+
+        for (let photoCount = 0; photoCount < totalPhotos; ++photoCount) {
+            await startCountdown(3, countdownElement);
+            
+            snapshotCanvas.width = webcam.videoWidth;
+            snapshotCanvas.height = webcam.videoHeight;
+            const context = snapshotCanvas.getContext('2d');
+            context.drawImage(webcam, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
+
+            const photoURL = snapshotCanvas.toDataURL('image/png');
+            displayImage(photoURL);
+
+            photos.push(photoURL.split(',')[1]);
+        }
+        
+    } catch (error) {
+        console.error(error);
+    } finally {
+        mediaStream.getTracks().forEach(track => track.stop());
+        uploadPhoto(photos);
+    }
+}
+
+async function uploadPhoto(photos) {
+    try {
+        const response = await fetch (`http://localhost:${PORT}/upload-photos`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ photos }),
+        });
+
+        if (!response.ok) throw new Error("Failed to upload image");
+
+        const result = await response.json();
+        console.log(result.message);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function base64ToBlob(base64, contentType) {
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512);
+        const byteNumbers = new Array(slice.length);
+
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+    }
+
+    return new Blob(byteArrays, { type: contentType });
+}
+
+function startCountdown(seconds, countdownElement) {
+    return new Promise((resolve) => {
+        let countdown = seconds;
+
+        const interval = setInterval(() => {
+            countdownElement.textContent = `Next photo in: ${countdown}s`;
+            countdown--;
+
+            if (countdown < 0) {
+                clearInterval(interval);
+                countdownElement.textContent = '';
+                resolve(); // 카운트다운 종료
+            }
+        }, 1000);
+    });
 }
 
 // function to display message
@@ -226,16 +324,15 @@ function createButton(text, onClick, className = 'response-button') {
 }
 
 // function to display image
-function displayImage (url, className) {
-    const messagesDiv = document.getElementById('messages');
+function displayImage (url) {
+    const cameraContainer = document.getElementById('camera-container');
     const img = document.createElement ('img');
     img.src = url
-    img.className = `message ${className}`;
 
-    img.style.maxWidth = "100%"; 
+    img.style.maxWidth = "25%"; 
     img.style.height = "auto"; 
     img.style.maxHeight = "300px"; 
 
-    messagesDiv.appendChild(img)
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    cameraContainer.appendChild(img)
+    cameraContainer.scrollTop = cameraContainer.scrollHeight;
 }
