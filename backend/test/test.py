@@ -129,21 +129,21 @@ async def generate_sticker(request: KeywordRequest):
             n=1
         )
 
-        image_url = response.data[0].url
-        print(f"{image_url}")
+        sticker_url = response.data[0].url
+        print(f"{sticker_url}")
 
-        create_pdf(image_url, "stickers.pdf")
+        create_pdf(sticker_url, "output.pdf")
 
-        return {"message": image_url}
+        return {"message": sticker_url}
 
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.post("/print-sticker")
+@app.post("/api/print-stickers")
 async def print_sticker ():
     try:
-        pdf_file = "stickers.pdf"
+        pdf_file = "output.pdf"
 
         printer = subprocess.check_output(["lpstat", "-d"], text=True).splitlines()
         printer = printer[0].split(':')[1].strip()
@@ -164,6 +164,15 @@ async def print_sticker ():
         print(f"Unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
+# @app.post("/api/generate-model")
+# async def generate_model () {
+#     try:
+        
+#     except Exception as e:
+#         print(f"Unexpected error occureed: {e}")
+#         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+# }
+
 def create_pdf(image_url, pdf_file):
     response = requests.get(image_url)
     if response.status_code == 200:
@@ -175,23 +184,36 @@ def create_pdf(image_url, pdf_file):
     a4_width, a4_height = A4
 
     # Open the PNG file
-    img = Image.open("stickers.png")
-    img_width, img_height = img.size
+    photo_img = [Image.open(f"user_photos/photo_{i}.png") for i in range(4)]
+    sticker_img = Image.open("stickers.png")
+
+    photo_width, photo_height = photo_img[0].size
+    sticker_width, sticker_height = sticker_img.size
 
     # 비율 계산 (A4에 맞게 축소)
-    scale = min(a4_width / img_width, a4_height / img_height)
-    new_width = img_width * scale
-    new_height = img_height * scale
+    sticker_scale = min(a4_width / sticker_width, a4_height / sticker_height) * 0.9
+    sticker_new_width = sticker_width * sticker_scale
+    sticker_new_height = sticker_height * sticker_scale
+
+    photo_scale = min(a4_width / photo_width / 2, a4_height / photo_height / 2) * 0.9
+    photo_new_width = photo_width * photo_scale
+    photo_new_height = photo_height * photo_scale
 
     # PDF 생성
     c = canvas.Canvas(pdf_file, pagesize=A4)
 
     # 이미지 위치 (중앙 정렬)
-    x = (a4_width - new_width) / 2
-    y = (a4_height - new_height) / 2
+    x = (a4_width - sticker_new_width) / 2
+    y = a4_height * 0.05
+    c.drawImage("stickers.png", x, y, width=sticker_new_width, height=sticker_new_height)
 
-    # 이미지 추가
-    c.drawImage("stickers.png", x, y, width=new_width, height=new_height)
+    for i in range(4):
+        x = i % 2
+        y = i // 2
+        
+        x = x * photo_new_width + 25
+        y = (a4_height/2 + y * photo_new_height) - 40
+        c.drawImage(f"user_photos/photo_{i}.png", x, y, width=photo_new_width, height=photo_new_height)
 
     # PDF 저장
     c.showPage()

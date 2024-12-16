@@ -97,6 +97,7 @@ function handleYes() {
 
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
+    // const takephotoButton = createButton("Take photo", scanPhase);
     const takephotoButton = createButton("Take photo", photoPhase);
     const containerElement = document.querySelector('.container');
     containerElement.appendChild(takephotoButton);
@@ -229,7 +230,7 @@ async function photoPhase() {
         const totalPhotos = 4;
 
         for (let photoCount = 0; photoCount < totalPhotos; ++photoCount) {
-            await startCountdown(3, countdownElement);
+            await startCountdown(2, countdownElement);
             
             snapshotCanvas.width = webcam.videoWidth;
             snapshotCanvas.height = webcam.videoHeight;
@@ -246,9 +247,100 @@ async function photoPhase() {
         console.error(error);
     } finally {
         mediaStream.getTracks().forEach(track => track.stop());
+
+        webcam.remove();
+        cameraContainer.removeChild(countdownElement);
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = `message loading`;
+        loadingDiv.textContent = "Loading...";
+        cameraContainer.appendChild(loadingDiv);
+        cameraContainer.scrollTop = cameraContainer.scrollHeight;
+
         await uploadPhoto(photos);
-        generateStickers();
+        await generateStickers();
+
+        cameraContainer.removeChild(loadingDiv);
+
+        printPhase();
     }
+}
+
+async function printPhase() {
+    const cameraContainer = document.getElementById('camera-container');
+    cameraContainer.style.display = 'none';
+
+    const printContainer = document.getElementById('print-container');
+    printContainer.style.display = 'block';
+
+    const printButton = document.getElementById('print-button');
+    printButton.addEventListener('click', async () => {
+        try {
+            const response = await fetch(`http://localhost:${PORT}/api/print-stickers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            });
+
+            if (!response.ok) {
+                console.error('Failed to print stickers');
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            scanPhase();
+        }
+    });
+}
+
+async function scanPhase () {
+    const printContainer = document.getElementById('print-container');
+    printContainer.style.display = 'none';
+
+    const scanContainer = document.getElementById('scan-container');
+    scanContainer.style.display = 'block';
+
+    const webcam = document.getElementById('scan-webcam');
+    const canvas = document.getElementById('scan-snapshot');
+    const button = document.getElementById('scan-button');
+    let mediaStream = null;
+    
+    try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        webcam.srcObject = mediaStream;
+
+        await new Promise((resolve) => {
+            button.addEventListener('click', () => {
+                canvas.width = webcam.videoWidth;
+                canvas.height = webcam.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+            
+                imageData = canvas.toDataURL('image/png');
+                // Do something with the image data, e.g., upload it to a server or display it
+                console.log(imageData);
+                resolve();
+            }, { once: true });
+        });
+    } catch (error) {
+        console.error(error);
+    } finally {
+        mediaStream.getTracks().forEach(track => track.stop());
+        if (imageData) {
+            const link = document.createElement('a');
+            link.href = imageData;
+            link.download = 'snapshot.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
+
+async function getPrompt(imageData) {
+    
 }
 
 async function generateStickers() {

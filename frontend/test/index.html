@@ -22,7 +22,23 @@
             <span class="match-bg">Let's Take A Photo</span>
         </h1>
         <video id="webcam" autoplay playsinline></video>
-        <canvas id="snapshot"></canvas>
+        <canvas id="snapshot" style="display: none;"></canvas>
+    </div>
+    <div class="container" id="print-container" style="display: none;">
+        <h1>
+            <span class="match-bg">Print Photo</span>
+        </h1>
+
+        <button id="print-button">Print</button>
+    </div>
+    <div class="container" id="scan-container" style="display: none;">
+        <h1>
+            <span class="match-bg">Scan Your Collage</span>
+        </h1>
+        <video id="scan-webcam" autoplay playsinline></video>
+        <canvas id="scan-snapshot" style="display: none;"></canvas>
+
+        <button id="scan-button">Scan</button>
     </div>
     <script src="script.js"></script>
 </body>
