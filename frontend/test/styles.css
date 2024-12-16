@@ -14,30 +14,28 @@ body {
 /* Container Styling */
 .container {
     text-align: center;
-    padding: 20px 40px;
+    padding: 20px;
 }
 
-/* Text Styling */
-.match-bg{
-  background-color: #53B8C0;
-    color: white;
-    display: inline; /* Ensures the background is limited to the text */
-    padding: 15px;
-    border-radius: 5px;
+/* Specific Background for Chat Container */
+#chat-container {
+    background-color: #53B8C0;
+    color: white; /* Ensures all text inherits white color */
+    border-radius: 10px; /* Optional for a softer look */
+    padding: 20px; /* Adjust for better spacing */
 }
 
-h1, p {
-    color: white;
-    margin: 10px 0;
-}
-
+/* Header Styling */
 h1 {
     font-size: 2.5rem;
+    color: white; /* White text */
 }
 
+/* General Text Styling */
 p {
     font-size: 1.2rem;
     line-height: 1.5;
+    color: inherit; /* Inherits white from #chat-container */
 }
 
 /* Input Box Styling */
@@ -55,9 +53,10 @@ p {
     max-height: 400px; 
     overflow-y: auto;  
     padding: 10px;     
-    background-color: #fafafa; 
+    background-color: #fff; /* White for contrast */
     border: 1px solid #ddd;    
     border-radius: 4px;       
+    color: #333; /* Dark text for messages */
 }
 
 .message {
@@ -93,7 +92,7 @@ p {
     border-radius: 4px;
 }
 
-/* Button Styling - need to edit later so button is inline with text input */
+/* Button Styling - Inline with text input */
 #send-button {
     padding: 10px 20px;
     font-size: 1rem;
