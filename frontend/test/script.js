@@ -214,14 +214,21 @@ async function photoPhase() {
     const cameraContainer = document.getElementById('camera-container');
     cameraContainer.style.display = 'block';
 
+    const countdownElement = document.createElement('div');
+    countdownElement.className = 'countdown-timer';
+    cameraContainer.appendChild(countdownElement);
+
+    const photoDiv = document.createElement('div');
+    photoDiv.style.display = 'grid';
+    photoDiv.style.gridTemplateColumns = '1fr 1fr';
+    photoDiv.style.gridTemplateRows = '1fr 1fr';
+    cameraContainer.style.gap = '10px';
+    cameraContainer.appendChild(photoDiv);
+
     const webcam = document.getElementById('webcam');
     const snapshotCanvas = document.getElementById('snapshot');
     let mediaStream = null;
     let photos = [];
-
-    const countdownElement = document.createElement('div');
-    countdownElement.className = 'countdown-timer';
-    cameraContainer.appendChild(countdownElement);
 
     try {
         mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -238,9 +245,14 @@ async function photoPhase() {
             context.drawImage(webcam, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
 
             const photoURL = snapshotCanvas.toDataURL('image/png');
-            displayImage(photoURL);
-
             photos.push(photoURL.split(',')[1]);
+
+            const img = document.createElement('img');
+            img.src = photoURL;
+            img.style.maxWidth = "100%";
+            img.style.height = "auto";
+            img.style.maxHeight = "200px";
+            photoDiv.appendChild(img);
         }
         
     } catch (error) {
@@ -273,26 +285,28 @@ async function printPhase() {
     const printContainer = document.getElementById('print-container');
     printContainer.style.display = 'block';
 
-    const printButton = document.getElementById('print-button');
-    printButton.addEventListener('click', async () => {
-        try {
-            const response = await fetch(`http://localhost:${PORT}/api/print-stickers`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({})
-            });
+    const printButton = createButton("Print", printPhotoAndStickers);
+    printContainer.appendChild(printButton);
+}
 
-            if (!response.ok) {
-                console.error('Failed to print stickers');
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            scanPhase();
+async function printPhotoAndStickers() {
+    try {
+        const response = await fetch(`http://localhost:${PORT}/api/print-photos`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({})
+        });
+
+        if (!response.ok) {
+            console.error('Failed to print photos');
         }
-    });
+    } catch (error) {
+        console.error(error);
+    } finally {
+        scanPhase();
+    }
 }
 
 async function scanPhase () {
@@ -339,9 +353,6 @@ async function scanPhase () {
     }
 }
 
-async function getPrompt(imageData) {
-    
-}
 
 async function generateStickers() {
     try {

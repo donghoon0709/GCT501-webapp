@@ -140,7 +140,7 @@ async def generate_sticker(request: KeywordRequest):
         print(f"Error occurred: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.post("/api/print-stickers")
+@app.post("/api/print-photos")
 async def print_sticker ():
     try:
         pdf_file = "output.pdf"

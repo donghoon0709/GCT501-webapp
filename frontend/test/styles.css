@@ -51,6 +51,7 @@ p {
     display: flex;
     flex-direction: column;
     max-height: 400px; 
+    max-width: 800px;
     overflow-y: auto;  
     padding: 10px;     
     background-color: #fff; /* White for contrast */
@@ -74,6 +75,7 @@ p {
 }
 
 .message.loading {
+    font-size: x-large;
     animation: fadeInOut 2s infinite;
 }
 @keyframes fadeInOut {
@@ -129,6 +131,23 @@ p {
 }
 
 .response-button:hover {
+    background-color: #53B8C0;
+    color: white;
+    border: none;
+}
+
+#scan-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: white;
+    color: #53B8C0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#scan-button:hover {
     background-color: #53B8C0;
     color: white;
     border: none;
